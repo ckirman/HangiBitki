@@ -67,46 +67,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        try{
-            BufferedReader bufferedReader=new BufferedReader(new InputStreamReader(getAssets().open("labels_yapraklar.txt")));
-            String line=bufferedReader.readLine();
-            while (line!=null){
-                labelsYapraklar[cnt]=line;
-                cnt++;
-                line=bufferedReader.readLine();
-
-            }
-            cnt=0;
-        }
-        catch (IOException e){
-            e.printStackTrace();
-        }
-        try{
-            BufferedReader bufferedReader=new BufferedReader(new InputStreamReader(getAssets().open("labels_cicekler.txt")));
-            String line=bufferedReader.readLine();
-            while (line!=null){
-                labelsCicekler[cnt]=line;
-                cnt++;
-                line=bufferedReader.readLine();
-            }
-            cnt=0;
-        }
-        catch (IOException e){
-            e.printStackTrace();
-        }
-        try{
-            BufferedReader bufferedReader=new BufferedReader(new InputStreamReader(getAssets().open("labels_meyveler.txt")));
-            String line=bufferedReader.readLine();
-            while (line!=null){
-                labelsMeyveler[cnt]=line;
-                cnt++;
-                line=bufferedReader.readLine();
-            }
-            cnt=0;
-        }
-        catch (IOException e){
-            e.printStackTrace();
-        }
         textViews = new TextView[]{findViewById(R.id.olabilecekBitkiler1), findViewById(R.id.olabilecekBitkiler2), findViewById(R.id.olabilecekBitkiler3)};
         init();
     }
