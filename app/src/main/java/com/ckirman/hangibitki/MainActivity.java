@@ -23,31 +23,22 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.ckirman.hangibitki.ml.ModelMeyveler;
 import com.ckirman.hangibitki.ml.ModelBitkiler;
-
-
 import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.support.label.Category;
-import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
-
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    public MainActivity() throws IOException {
+    public MainActivity()  {
     }
     private static final int PERMISSIONS_COUNT=2;
     private static final int REQUEST_PERMISSIONS=12345;
@@ -58,9 +49,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_CAPTURE=1012;
     private static final String appID="HangiBitki";
     private Uri imageUri;
-    private int cnt=0;
     private TextView[] textViews;
-    private int bitkilerid[][];
+    private int[][] bitkilerid;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -129,64 +119,53 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(chooseIntent,REQUEST_PICK_IMAGE);
         });
         final Button resimCekBtn=findViewById(R.id.resimCekBtn);
-        resimCekBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final Intent takePictureIntent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if(takePictureIntent.resolveActivity(getPackageManager())!=null){
-                    final File photoFile=createImageFile();
-                    imageUri=Uri.fromFile(photoFile);
-                    final SharedPreferences myPrefs=getSharedPreferences(appID,0);
-                    myPrefs.edit().putString("path",photoFile.getAbsolutePath()).apply();
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,imageUri);
-                    startActivityForResult(takePictureIntent,REQUEST_IMAGE_CAPTURE);
-                }else{
-                   Toast.makeText(MainActivity.this,"Kameranız uyumlu değil",Toast.LENGTH_SHORT).show();
-                }
-            }
+        resimCekBtn.setOnClickListener(v -> {
+            final Intent takePictureIntent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            //if(takePictureIntent.resolveActivity(getPackageManager())!=null){
+                final File photoFile=createImageFile();
+                imageUri=Uri.fromFile(photoFile);
+                final SharedPreferences myPrefs=getSharedPreferences(appID,0);
+                myPrefs.edit().putString("path",photoFile.getAbsolutePath()).apply();
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,imageUri);
+                startActivityForResult(takePictureIntent,REQUEST_IMAGE_CAPTURE);
+           // }else{
+             //  Toast.makeText(MainActivity.this,"Kameranız uyumlu değil",Toast.LENGTH_SHORT).show();
+           // }
         });
         final Button bitkiBulBtn=findViewById(R.id.btnHangiBitki);
-        bitkiBulBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new Thread(){
-                    @RequiresApi(api = Build.VERSION_CODES.N)
-                    public void run(){
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    ModelBitkiler model_Bitkiler = ModelBitkiler.newInstance(MainActivity.this);
-                                    TensorImage image = TensorImage.fromBitmap(bitmap);
-                                    ModelBitkiler.Outputs outputs = model_Bitkiler.process(image);
-                                    List<Category> probability = outputs.getProbabilityAsCategoryList();
-                                    probability.sort(Comparator.comparing(Category::getScore, Comparator.reverseOrder()));
-                                    for (int i=0; i<3; i++){
-                                        textViews[i].setText(probability.get(i).getLabel()+ probability.get(i).getScore());
-                                        for(int k=0;k<4;k++) {
-                                            imageViewBitkiler[i][k].setImageResource(bitkilerid[getLabelIndex(probability.get(i).getLabel())][k]);
-                                        }
-                                    }
-                                    findViewById(R.id.olabilecekBitkilerLayout).setVisibility(View.VISIBLE);
-                                    model_Bitkiler.close();
-                                } catch (IOException e) {
-                                    // TODO Handle the exception
-                                }
+        bitkiBulBtn.setOnClickListener(view -> new Thread(){
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            public void run(){
+                runOnUiThread(() -> {
+                    try {
+                        ModelBitkiler model_Bitkiler = ModelBitkiler.newInstance(MainActivity.this);
+                        TensorImage image = TensorImage.fromBitmap(bitmap);
+                        ModelBitkiler.Outputs outputs = model_Bitkiler.process(image);
+                        List<Category> probability = outputs.getProbabilityAsCategoryList();
+                        probability.sort(Comparator.comparing(Category::getScore, Comparator.reverseOrder()));
+                        for (int i=0; i<3; i++){
+                            if((int)(probability.get(i).getScore()*100)>0)
+                                textViews[i].setText("%"+ (int)(probability.get(i).getScore()*100)+" ihtimalle "+probability.get(i).getLabel());
+                            else
+                                textViews[i].setText("%1< ihtimalle "+probability.get(i).getLabel());
+                            for(int k=0;k<4;k++) {
+                                imageViewBitkiler[i][k].setImageResource(bitkilerid[getLabelIndex(probability.get(i).getLabel())][k]);
                             }
-                        });
-
+                        }
+                        findViewById(R.id.olabilecekBitkilerLayout).setVisibility(View.VISIBLE);
+                        model_Bitkiler.close();
+                    } catch (IOException e) {
+                        // TODO Handle the exception
                     }
-                }.start();
+                });
+
             }
-        });
+        }.start());
         final Button geriBtn=findViewById(R.id.btnGeri);
-        geriBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                findViewById(R.id.MainScreen).setVisibility(View.VISIBLE);
-                findViewById(R.id.editScreen).setVisibility(View.INVISIBLE);
-                findViewById(R.id.olabilecekBitkilerLayout).setVisibility(View.INVISIBLE);
-            }
+        geriBtn.setOnClickListener(v -> {
+            findViewById(R.id.MainScreen).setVisibility(View.VISIBLE);
+            findViewById(R.id.editScreen).setVisibility(View.INVISIBLE);
+            findViewById(R.id.olabilecekBitkilerLayout).setVisibility(View.INVISIBLE);
         });
     }
 
@@ -221,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     private File createImageFile(){
-        final String timeStamp=new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        final String timeStamp=new SimpleDateFormat("yyyyMMdd_HHmmss",Locale.US).format(new Date());
         final String imageFileName="/JPEG_"+timeStamp+".jpg";
         final File storageDir= Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         return new File(storageDir+imageFileName);
@@ -282,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
                 if(width/resizeScale>MAX_PIXEL_COUNT||height/resizeScale>MAX_PIXEL_COUNT)
                     resizeScale++;
                 bmpOptions.inSampleSize=resizeScale;
-                InputStream input=null;
+                InputStream input;
                 try {
                     input=getContentResolver().openInputStream(imageUri);
                 }catch (FileNotFoundException e){
@@ -291,12 +270,9 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 bitmap=BitmapFactory.decodeStream(input,null,bmpOptions);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        imageViewMain.setImageBitmap(bitmap);
-                        dialog.cancel();
-                    }
+                runOnUiThread(() -> {
+                    imageViewMain.setImageBitmap(bitmap);
+                    dialog.cancel();
                 });
                 width=bitmap.getWidth();
                 height=bitmap.getHeight();
