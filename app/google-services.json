@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "476759302968",
+    "project_id": "hangibitki-c6c9b",
+    "storage_bucket": "hangibitki-c6c9b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:476759302968:android:41f27bff5544dcb41917cd",
+        "android_client_info": {
+          "package_name": "com.ckirman.hangiBitki"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "476759302968-vbnv3ujc0kh6e1evkbgls2cphe2cjkj5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCszxDF1m-IsbWOyhA_qM6EDQ73jCGCryw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "476759302968-vbnv3ujc0kh6e1evkbgls2cphe2cjkj5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:476759302968:android:82d6d5a1ebb739f11917cd",
+        "android_client_info": {
+          "package_name": "com.ckirman.hangibitki"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "476759302968-vbnv3ujc0kh6e1evkbgls2cphe2cjkj5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCszxDF1m-IsbWOyhA_qM6EDQ73jCGCryw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "476759302968-vbnv3ujc0kh6e1evkbgls2cphe2cjkj5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

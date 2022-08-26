@@ -24,9 +24,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ckirman.hangibitki.ml.ModelYapraklar;
-import com.ckirman.hangibitki.ml.ModelCicekler;
 import com.ckirman.hangibitki.ml.ModelMeyveler;
+import com.ckirman.hangibitki.ml.ModelBitkiler;
 
 
 import org.tensorflow.lite.support.image.TensorImage;
@@ -54,20 +53,34 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSIONS=12345;
     private static final String[] PERMISSIONS={Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
     private static final int REQUEST_PICK_IMAGE=1234;
-    private ImageView imageView;
+    private ImageView[][] imageViewBitkiler;
+    private ImageView imageViewMain;
     private static final int REQUEST_IMAGE_CAPTURE=1012;
     private static final String appID="HangiBitki";
     private Uri imageUri;
-    private String[] labelsYapraklar=new String[20];
-    private String[] labelsCicekler=new String[20];
-    private String[] labelsMeyveler=new String[20];
     private int cnt=0;
     private TextView[] textViews;
+    private int bitkilerid[][];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textViews = new TextView[]{findViewById(R.id.olabilecekBitkiler1), findViewById(R.id.olabilecekBitkiler2), findViewById(R.id.olabilecekBitkiler3)};
+        imageViewBitkiler =new ImageView[][]{{findViewById(R.id.obImg1_1),findViewById(R.id.obImg1_2),findViewById(R.id.obImg1_3),findViewById(R.id.obImg1_4)},
+                {findViewById(R.id.obImg2_1),findViewById(R.id.obImg2_2),findViewById(R.id.obImg2_3),findViewById(R.id.obImg2_4)},
+                {findViewById(R.id.obImg3_1),findViewById(R.id.obImg3_2),findViewById(R.id.obImg3_3),findViewById(R.id.obImg3_4)}};
+       bitkilerid=new int[][]{{R.drawable.ates_dikeni_0,R.drawable.ates_dikeni_1,R.drawable.ates_dikeni_2,R.drawable.ates_dikeni_3},
+               {R.drawable.dag_cilegi_0,R.drawable.dag_cilegi_1,R.drawable.dag_cilegi_2,R.drawable.dag_cilegi_3},
+               {R.drawable.filamingo_cicegi_0,R.drawable.filamingo_cicegi_1,R.drawable.filamingo_cicegi_2,R.drawable.filamingo_cicegi_3},
+               {R.drawable.gelincik_0,R.drawable.gelincik_1,R.drawable.gelincik_2,R.drawable.gelincik_3},
+               {R.drawable.kadife_cicegi_0,R.drawable.kadife_cicegi_1,R.drawable.kadife_cicegi_2,R.drawable.kadife_cicegi_3},
+               {R.drawable.karahindiba_0,R.drawable.karahindiba_1,R.drawable.karahindiba_2,R.drawable.karahindiba_3},
+               {R.drawable.lale_0,R.drawable.lale_1,R.drawable.lale_2,R.drawable.lale_3},
+               {R.drawable.lavanta_0,R.drawable.lavanta_1,R.drawable.lavanta_2,R.drawable.lavanta_3},
+               {R.drawable.nar_0,R.drawable.nar_1,R.drawable.nar_2,R.drawable.nar_3},
+               {R.drawable.sardunya_0,R.drawable.sardunya_1,R.drawable.sardunya_2,R.drawable.sardunya_3},
+               {R.drawable.seflara_0,R.drawable.seflara_1,R.drawable.seflara_2,R.drawable.seflara_3},
+               {R.drawable.yonca_0,R.drawable.yonca_1,R.drawable.yonca_2,R.drawable.yonca_3}};
         init();
     }
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -102,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
             StrictMode.VmPolicy.Builder builder=new StrictMode.VmPolicy.Builder();
             StrictMode.setVmPolicy(builder.build());
         }
-        imageView=findViewById(R.id.secilenResim);
+        imageViewMain=findViewById(R.id.secilenResim);
         if(!MainActivity.this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)){
             findViewById(R.id.resimCekBtn).setVisibility(View.GONE);
         }
@@ -132,28 +145,38 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        final Button yaprakBulBtn=findViewById(R.id.btnYaprak);
-        yaprakBulBtn.setOnClickListener(new View.OnClickListener() {
+        final Button bitkiBulBtn=findViewById(R.id.btnHangiBitki);
+        bitkiBulBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 new Thread(){
                     @RequiresApi(api = Build.VERSION_CODES.N)
                     public void run(){
-                        try {
-                            ModelYapraklar model_yaprak = ModelYapraklar.newInstance(MainActivity.this);
-                            TensorImage image = TensorImage.fromBitmap(bitmap);
-                            ModelYapraklar.Outputs outputs = model_yaprak.process(image);
-                            List<Category> probability = outputs.getProbabilityAsCategoryList();
-                            probability.sort(Comparator.comparing(Category::getScore, Comparator.reverseOrder()));
-                            for (int i=0; i<3; i++)
-                                textViews[i].setText(probability.get(i).getLabel().toUpperCase()+":"+probability.get(i).getScore());
-                            model_yaprak.close();
-                        } catch (IOException e) {
-                            // TODO Handle the exception
-                        }
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    ModelBitkiler model_Bitkiler = ModelBitkiler.newInstance(MainActivity.this);
+                                    TensorImage image = TensorImage.fromBitmap(bitmap);
+                                    ModelBitkiler.Outputs outputs = model_Bitkiler.process(image);
+                                    List<Category> probability = outputs.getProbabilityAsCategoryList();
+                                    probability.sort(Comparator.comparing(Category::getScore, Comparator.reverseOrder()));
+                                    for (int i=0; i<3; i++){
+                                        textViews[i].setText(probability.get(i).getLabel()+ probability.get(i).getScore());
+                                        for(int k=0;k<4;k++) {
+                                            imageViewBitkiler[i][k].setImageResource(bitkilerid[getLabelIndex(probability.get(i).getLabel())][k]);
+                                        }
+                                    }
+                                    findViewById(R.id.olabilecekBitkilerLayout).setVisibility(View.VISIBLE);
+                                    model_Bitkiler.close();
+                                } catch (IOException e) {
+                                    // TODO Handle the exception
+                                }
+                            }
+                        });
+
                     }
                 }.start();
-
             }
         });
         final Button geriBtn=findViewById(R.id.btnGeri);
@@ -162,90 +185,41 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 findViewById(R.id.MainScreen).setVisibility(View.VISIBLE);
                 findViewById(R.id.editScreen).setVisibility(View.INVISIBLE);
-            }
-        });
-        final Button cicekBulBtn=findViewById(R.id.btnCicek);
-        cicekBulBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new Thread(){
-                    @RequiresApi(api = Build.VERSION_CODES.N)
-                    public void run(){
-                        try {
-                            ModelCicekler model_cicek = ModelCicekler.newInstance(MainActivity.this);
-                            TensorImage image = TensorImage.fromBitmap(bitmap);
-                            ModelCicekler.Outputs outputs = model_cicek.process(image);
-                            List<Category> probability = outputs.getProbabilityAsCategoryList();
-                            probability.sort(Comparator.comparing(Category::getScore, Comparator.reverseOrder()));
-                            for (int i=0; i<3; i++)
-                                textViews[i].setText(probability.get(i).getLabel()+ probability.get(i).getScore());
-                            model_cicek.close();
-                        } catch (IOException e) {
-                            // TODO Handle the exception
-                        }
-                    }
-                }.start();
-
-            }
-        });
-        final Button meyveBulBtn=findViewById(R.id.btnMeyve);
-        meyveBulBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new Thread(){
-                    @RequiresApi(api = Build.VERSION_CODES.N)
-                    public void run(){
-                        try {
-                            ModelMeyveler model_meyve = ModelMeyveler.newInstance(MainActivity.this);
-                            TensorImage image = TensorImage.fromBitmap(bitmap);
-                            ModelMeyveler.Outputs outputs = model_meyve.process(image);
-                            List<Category> probability = outputs.getProbabilityAsCategoryList();
-                            probability.sort(Comparator.comparing(Category::getScore, Comparator.reverseOrder()));
-                            for (int i=0; i<3; i++)
-                                textViews[i].setText(probability.get(i).getLabel()+ probability.get(i).getScore());
-                            // ModelClassifierPlants model = ModelClassifierPlants.newInstance(getApplicationContext());
-                            // Runs model inference and gets result.
-                            //TensorBuffer OutputsFeature=outputs.getProbabilityAsTensorBuffer();
-                            //bitkiListesi.setText(getMaxFloat(OutputsFeature.getFloatArray())+labelsMeyveler[getMaxInt(OutputsFeature.getFloatArray())]);
-                            model_meyve.close();
-                        } catch (IOException e) {
-                            // TODO Handle the exception
-                        }
-                    }
-                }.start();
-
+                findViewById(R.id.olabilecekBitkilerLayout).setVisibility(View.INVISIBLE);
             }
         });
     }
 
-    private int getMaxInt(float[] arr) {
-        int max=0;
-        for (int i=0;i<arr.length;i++){
-            if(arr[i]<arr[max])
-                max=i;
+    private int getLabelIndex(String label) {
+        switch (label){
+            case "Ateş Dikeni":
+                return 0;
+            case "Çilek":
+                return 1;
+            case "Filamingo Çiçeği":
+                return 2;
+            case "Gelincik":
+                return 3;
+            case "Kadife Çiçeği":
+                return 4;
+            case "Karahindiba":
+                return 5;
+            case "Lale":
+                return 6;
+            case "Lavanta":
+                return 7;
+            case "Nar":
+                return 8;
+            case "Sardunya":
+                return 9;
+            case "Şeflara":
+                return 10;
+            case "Yonca":
+                return 11;
+            default:
+                return 0;
         }
-        return max;
     }
-    private float getMaxFloat(float[] arr) {
-        int max=0;
-        for (int i=0;i<arr.length;i++){
-            if(arr[i]<arr[max])
-                max=i;
-        }
-        return arr[max];
-    }
-    private float[] sortedArray(float[] arr){
-        for (int i = 0; i < arr.length - 1; i++)
-            for (int j = 0; j < arr.length - i - 1; j++)
-                if (arr[j] > arr[j + 1]) {
-                    // swap arr[j+1] and arr[j]
-                    float temp = arr[j];
-                    arr[j] = arr[j + 1];
-                    arr[j + 1] = temp;
-                }
-        return arr;
-    }
-
     private File createImageFile(){
         final String timeStamp=new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         final String imageFileName="/JPEG_"+timeStamp+".jpg";
@@ -320,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        imageView.setImageBitmap(bitmap);
+                        imageViewMain.setImageBitmap(bitmap);
                         dialog.cancel();
                     }
                 });
